@@ -104,3 +104,13 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Mengabaikan folder cache Unity yang ada di dalam sub-folder
+UntilThen_Game/Library/
+UntilThen_Game/Temp/
+UntilThen_Game/obj/
+UntilThen_Game/Build/
+UntilThen_Game/Builds/
+UntilThen_Game/Logs/
+UntilThen_Game/MemoryCaptures/
+UntilThen_Game/UserSettings/
