@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class DialogueManager : MonoBehaviour
 {
@@ -10,24 +11,27 @@ public class DialogueManager : MonoBehaviour
     public GameObject dialoguePanel;
     public TextMeshProUGUI dialogueText;
 
+    public TextMeshProUGUI nameText;
+    public Image portraitImage;
+
     // MATERI WORKSHOP: Data Structure (Queue)
-    private Queue<string> sentences; 
+    private Queue<DialogueLine> sentences; 
     // Variabel untuk mengatur efek pengetikan
     private Coroutine typingCoroutine; 
-    private string currentSentence; 
+    private DialogueLine currentLine; 
     private bool isTyping = false;
     void Awake()
     {
         Instance = this;
-        sentences = new Queue<string>();
+        sentences = new Queue<DialogueLine>();
     }
 
-    public void StartDialogue(string[] lines)
+    public void StartDialogue(DialogueLine[] lines)
     {
         dialoguePanel.SetActive(true);
         sentences.Clear();
 
-        foreach (string line in lines)
+        foreach (DialogueLine line in lines)
         {
             sentences.Enqueue(line); // Masukkan kalimat ke dalam antrian
         }
@@ -41,7 +45,7 @@ public class DialogueManager : MonoBehaviour
         if (isTyping)
         {
             StopCoroutine(typingCoroutine);
-            dialogueText.text = currentSentence;
+            dialogueText.text = currentLine.sentence; // Tampilkan kalimat lengkap
             isTyping = false;
             return;
         }
@@ -52,13 +56,25 @@ public class DialogueManager : MonoBehaviour
             return;
         }
 
-        currentSentence = sentences.Dequeue(); 
+        currentLine = sentences.Dequeue();
+        nameText.text = currentLine.characterName;
         
+        // Update UI Wajah (kalau gambarnya dikosongin di Inspector, hilangkan kotak fotonya)
+        if (currentLine.characterPortrait != null)
+        {
+            portraitImage.sprite = currentLine.characterPortrait;
+            portraitImage.gameObject.SetActive(true);
+        }
+        else
+        {
+            portraitImage.gameObject.SetActive(false);
+        }
+
         // Hentikan efek ngetik sebelumnya (jika ada) untuk mencegah teks bertumpuk
         if (typingCoroutine != null) StopCoroutine(typingCoroutine);
         
         // Mulai efek ngetik huruf demi huruf
-        typingCoroutine = StartCoroutine(TypeSentence(currentSentence));
+        typingCoroutine = StartCoroutine(TypeSentence(currentLine.sentence));
     }
     // Typewriter Effect
     IEnumerator TypeSentence(string sentence)

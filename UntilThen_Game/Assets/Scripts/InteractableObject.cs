@@ -2,8 +2,8 @@ using UnityEngine;
 
 public class InteractableObject : MonoBehaviour, IInteractable 
 {
-    [TextArea(3, 10)]
-    public string[] dialogueLines;
+    //[TextArea(3, 10)]
+    public DialogueLine[] dialogueLines;
     
     // Variabel untuk menampung ikon interaksi
     public GameObject promptIcon; 
