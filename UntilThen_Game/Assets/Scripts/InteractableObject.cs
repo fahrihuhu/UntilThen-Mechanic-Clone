@@ -1,13 +1,32 @@
 using UnityEngine;
 
-// MATERI WORKSHOP: Interface (IInteractable wajib punya void Interact)
 public class InteractableObject : MonoBehaviour, IInteractable 
 {
     [TextArea(3, 10)]
-    public string[] dialogueLines; // Teks yang bisa diisi dari Inspector
+    public string[] dialogueLines;
+    
+    // Variabel untuk menampung ikon interaksi
+    public GameObject promptIcon; 
+
+    private void Start()
+    {
+        // Pastikan ikonnya hilang saat game baru mulai
+        if (promptIcon != null) promptIcon.SetActive(false);
+    }
 
     public void Interact()
     {
         DialogueManager.Instance.StartDialogue(dialogueLines);
+        HidePrompt(); // Sembunyikan ikon saat obrolan dimulai
+    }
+
+    public void ShowPrompt()
+    {
+        if (promptIcon != null) promptIcon.SetActive(true);
+    }
+
+    public void HidePrompt()
+    {
+        if (promptIcon != null) promptIcon.SetActive(false);
     }
 }
