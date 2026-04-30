@@ -1,92 +1,127 @@
 using System.Collections;
 using UnityEngine;
 using TMPro;
-using UnityEngine.UI;
 
 public class PhoneManager : MonoBehaviour
 {
     public static PhoneManager Instance;
 
+    [Header("UI Utama")]
     public GameObject phonePanel;
     public Transform chatContentArea; 
+    public TextMeshProUGUI contactNameDisplay; 
     
     [Header("Prefabs")]
     public GameObject npcBubblePrefab;
     public GameObject playerBubblePrefab;
 
-    [Header("Reply UI")]
-    public GameObject replyPanel; // Panel penampung tombol di bawah
+    [Header("Reply UI (Panel Bawah)")]
+    public GameObject replyPanel; 
     public TextMeshProUGUI choice1Text;
     public TextMeshProUGUI choice2Text;
+
+    private ChatSequence[] currentAllSequences;
+    private int currentIndex = 0; // Buat ngelacak rute mana yang lagi aktif
 
     private void Awake() => Instance = this;
 
     private void Start()
     {
+        phonePanel.SetActive(false);
         replyPanel.SetActive(false);
     }
 
-    // Fungsi ini yang dipanggil oleh Trigger di jalan nanti
-    public void StartChatSequence(ChatSequence sequence)
+    public void StartChatSequence(ChatSequence[] sequences)
     {
-        if (!phonePanel.activeSelf) phonePanel.SetActive(true);
-        replyPanel.SetActive(false); // Sembunyikan tombol saat chat masuk
-        StartCoroutine(PlayChatSequence(sequence));
+        currentAllSequences = sequences;
+        currentIndex = 0; // Selalu mulai dari rute index 0
+        
+        phonePanel.SetActive(true);
+        replyPanel.SetActive(false); 
+
+        foreach (Transform child in chatContentArea)
+        {
+            Destroy(child.gameObject);
+        }
+
+        StartCoroutine(PlayChatSequence(currentAllSequences[currentIndex]));
     }
 
     IEnumerator PlayChatSequence(ChatSequence sequence)
     {
-        // Munculkan chat satu per satu dengan jeda
+        // Cari nama buat di Header
         foreach (ChatMessage chat in sequence.messages)
         {
-            SpawnBubble(chat);
-            yield return new WaitForSeconds(1.5f); // Jeda tiap chat masuk (bisa disesuaikan)
+            if (!chat.isPlayer)
+            {
+                contactNameDisplay.text = chat.senderName;
+                break; 
+            }
         }
 
-        // Kalau ada pilihan jawaban, munculkan tombolnya
+        foreach (ChatMessage chat in sequence.messages)
+        {
+            SpawnBubble(chat.isPlayer, chat.senderName, chat.message);
+            yield return new WaitForSeconds(1.5f); 
+        }
+
         if (sequence.requirePlayerReply)
         {
             choice1Text.text = sequence.choice1Text;
             choice2Text.text = sequence.choice2Text;
             replyPanel.SetActive(true);
+            Canvas.ForceUpdateCanvases();
         }
     }
 
-    private void SpawnBubble(ChatMessage chat)
+    private void SpawnBubble(bool isPlayer, string sender, string messageText)
     {
-        GameObject bubblePrefab = chat.isPlayer ? playerBubblePrefab : npcBubblePrefab;
-        GameObject newBubble = Instantiate(bubblePrefab, chatContentArea);
+        GameObject prefabToSpawn = isPlayer ? playerBubblePrefab : npcBubblePrefab;
+        GameObject newBubble = Instantiate(prefabToSpawn, chatContentArea);
 
-        // Cari semua teks di dalam bubble yang baru di-spawn
         TextMeshProUGUI[] texts = newBubble.GetComponentsInChildren<TextMeshProUGUI>();
         
-        if (chat.isPlayer)
+        if (texts.Length > 0)
         {
-            // Player cuma punya 1 teks (Message)
-            texts[0].text = chat.message;
-        }
-        else
-        {
-            // NPC punya 2 teks (Name dan Message)
-            texts[0].text = chat.senderName;
-            texts[1].text = chat.message;
+            texts[0].text = messageText;
         }
 
         Canvas.ForceUpdateCanvases();
     }
 
-    // Fungsi untuk tombol pilihan 1
-    public void ChooseOption1()
-    {
+    public void ChooseOption1() 
+    { 
         replyPanel.SetActive(false);
-        // Spawn chat balasan kita sendiri warna biru
-        SpawnBubble(new ChatMessage { isPlayer = true, message = choice1Text.text });
+        SpawnBubble(true, "Player", currentAllSequences[currentIndex].choice1Text);
+        
+        int nextIndex = currentAllSequences[currentIndex].nextSequence1;
+        if (nextIndex >= 0 && nextIndex < currentAllSequences.Length)
+        {
+            StartCoroutine(WaitAndPlayNext(nextIndex));
+        }
     }
 
-    // Fungsi untuk tombol pilihan 2
-    public void ChooseOption2()
-    {
+    public void ChooseOption2() 
+    { 
         replyPanel.SetActive(false);
-        SpawnBubble(new ChatMessage { isPlayer = true, message = choice2Text.text });
+        SpawnBubble(true, "Player", currentAllSequences[currentIndex].choice2Text);
+        
+        int nextIndex = currentAllSequences[currentIndex].nextSequence2;
+        if (nextIndex >= 0 && nextIndex < currentAllSequences.Length)
+        {
+            StartCoroutine(WaitAndPlayNext(nextIndex));
+        }
+    }
+
+    IEnumerator WaitAndPlayNext(int index)
+    {
+        yield return new WaitForSeconds(1.0f);
+        currentIndex = index; // Update index ke rute cabang
+        StartCoroutine(PlayChatSequence(currentAllSequences[currentIndex]));
+    }
+
+    public void ClosePhone()
+    {
+        phonePanel.SetActive(false);
     }
 }
