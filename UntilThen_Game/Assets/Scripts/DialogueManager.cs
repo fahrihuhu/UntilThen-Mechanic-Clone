@@ -13,13 +13,16 @@ public class DialogueManager : MonoBehaviour
 
     public TextMeshProUGUI nameText;
     public Image portraitImage;
-
+    
+    [Header("Layar Tamat")]
+    public GameObject panelTamat;
     // MATERI WORKSHOP: Data Structure (Queue)
     private Queue<DialogueLine> sentences; 
     // Variabel untuk mengatur efek pengetikan
     private Coroutine typingCoroutine; 
     private DialogueLine currentLine; 
     private bool isTyping = false;
+
     void Awake()
     {
         Instance = this;
@@ -76,6 +79,8 @@ public class DialogueManager : MonoBehaviour
         // Mulai efek ngetik huruf demi huruf
         typingCoroutine = StartCoroutine(TypeSentence(currentLine.sentence));
     }
+
+    
     // Typewriter Effect
     IEnumerator TypeSentence(string sentence)
     {
@@ -94,5 +99,11 @@ public class DialogueManager : MonoBehaviour
     void EndDialogue()
     {
         dialoguePanel.SetActive(false);
+        
+        // Cek kalau yang ngomong Salma, munculin layar hitam
+        if (currentLine != null && currentLine.characterName == "Salma")
+        {
+            panelTamat.SetActive(true); 
+        }
     }
 }
