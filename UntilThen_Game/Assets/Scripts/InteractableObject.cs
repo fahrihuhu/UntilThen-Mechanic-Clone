@@ -14,7 +14,7 @@ public class InteractableObject : MonoBehaviour, IInteractable
         if (promptIcon != null) promptIcon.SetActive(false);
     }
 
-    public void Interact()
+    public virtual void Interact()
     {
         DialogueManager.Instance.StartDialogue(dialogueLines);
         HidePrompt(); // Sembunyikan ikon saat obrolan dimulai

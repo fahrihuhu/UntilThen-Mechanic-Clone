@@ -33,20 +33,31 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        // Kalau lagi di menu atau di-pause, input pergerakan dimatikan
-        if (!canMove) 
+        // 1. CEK DULU: Lagi di Menu, di-Pause, ATAU lagi buka HP?
+        // Kalau iya, matikan pergerakan dan hentikan eksekusi kode di bawahnya
+        if (!canMove || PhoneManager.Instance.phonePanel.activeSelf) 
         {
             movement = Vector2.zero;
             return;
         }
 
-        // Ambil input A/D atau Panah Kiri/Kanan
+        // 2. AMBIL INPUT: A/D atau Panah Kiri/Kanan
         movement.x = Input.GetAxisRaw("Horizontal");
+
+        // 3. BALIK BADAN OTOMATIS: Flip satu badan penuh (beserta baju & rambut)
+        if (movement.x > 0)
+        {
+            transform.localScale = new Vector3(5f, 5f, 1f); // Nengok Kanan ukuran 2.5
+        }
+        else if (movement.x < 0)
+        {
+            transform.localScale = new Vector3(-5f, 5f, 1f); // Nengok Kiri ukuran 2.5
+        }
     }
 
     void FixedUpdate()
     {
-        // Menggerakkan karakter
+        // 4. EKSEKUSI JALAN: Menggunakan standar Unity 6
         rb.linearVelocity = new Vector2(movement.x * moveSpeed, rb.linearVelocity.y);
     }
 }
